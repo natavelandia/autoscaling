@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ocrns
+  labels:
+    name: staging
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: ocrns
+  labels:
+    app: ocr
+  name: ocr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ocr
+  template:
+    metadata:
+      labels:
+        app: ocr
+    spec: 
+      containers:
+      - image: ricktorzynski/ocr-tesseract-docker
+        name: ocr
+        resources:
+          # You must specify requests for CPU to autoscale
+          # based on CPU utilization
+          limits:
+            cpu: 600m
+          requests:
+            cpu: 300m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: ocrns
+  labels:
+    app: ocr
+  name: ocr
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 5000
+  selector:
+    app: ocr
+  type: LoadBalancer
+
